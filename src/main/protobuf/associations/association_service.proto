@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_package="com.bchenault.associations";
+package associations;
+
+
+service AssociationService {
+    rpc SetAssociation (SetAssociationRequest) returns (SetAssociationResponse) { }
+}
+
+message SetAssociationRequest {
+    string input = 1;
+}
+
+message SetAssociationResponse {
+    string output = 1;
+}
