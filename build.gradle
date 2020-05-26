@@ -57,7 +57,7 @@ test {
 task runServer(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
 
-  main = 'com.bchenault.associations.AssociationServer'
+  main = 'com.bchenault.association.service.AssociationServer'
 
   jvmArgs "-javaagent:" + configurations.alpnagent.asPath
 }
@@ -66,9 +66,9 @@ task runServer(type: JavaExec) {
 task runClient(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
 
-  main = 'com.bchenault.associations.AssociationClient'
+  main = 'com.bchenault.association.service.AssociationClient'
 }
 
 application {
-  mainClassName = 'com.bchenault.associations.AssociationServer'
+  mainClassName = 'AssociationServer'
 }

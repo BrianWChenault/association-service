@@ -4,7 +4,7 @@
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <name>Association Service</name>
-  <groupId>com.bchenault.associations</groupId>
+  <groupId>com.bchenault.associationn.service</groupId>
   <artifactId>association-service</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 
@@ -165,7 +165,7 @@
                 <argument>-javaagent:${org.mortbay.jetty.alpn:jetty-alpn-agent:jar}</argument>
                 <argument>-classpath</argument>
                 <classpath />
-                <argument>com.bchenault.associations.AssociationServer</argument>
+                <argument>com.bchenault.association.service.AssociationServer</argument>
               </arguments>
             </configuration>
           </execution>
@@ -179,7 +179,7 @@
               <arguments>
                 <argument>-classpath</argument>
                 <classpath />
-                <argument>com.bchenault.associations.AssociationClient</argument>
+                <argument>com.bchenault.association.service.AssociationClient</argument>
                 <argument>${GreeterClient.user}</argument>
               </arguments>
             </configuration>

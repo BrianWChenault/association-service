@@ -1,5 +1,5 @@
 syntax = "proto3";
-option java_package="com.bchenault.associations";
+option java_package="com.bchenault.association.service";
 package associations;
 
 

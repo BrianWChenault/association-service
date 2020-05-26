@@ -1,4 +1,4 @@
-package com.bchenault.associations
+package com.bchenault.association.service
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.UseHttp2.Always
