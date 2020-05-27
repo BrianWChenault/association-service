@@ -1,10 +1,10 @@
-package com.bchenault.association.service
+package com.bchenault.association.grpc
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
+import com.bchenault.association.protobuf.{AssociationServiceClient, SetAssociationRequest}
 
-import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 object AssociationClient {

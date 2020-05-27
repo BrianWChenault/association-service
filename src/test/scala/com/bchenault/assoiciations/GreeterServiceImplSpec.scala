@@ -6,7 +6,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.bchenault.association.service.{AssociationServiceImpl, SetAssociationRequest, SetAssociationResponse}
+import com.bchenault.association.grpc.{AssociationServiceImpl, SetAssociationRequest, SetAssociationResponse}
 import com.bchenault.associations.service.{SetAssociationRequest, SetAssociationResponse}
 import com.bchenault.associations.{SetAssociationRequest, SetAssociationResponse}
 import org.scalatest.BeforeAndAfterAll

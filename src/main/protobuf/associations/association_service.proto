@@ -1,16 +1,34 @@
 syntax = "proto3";
-option java_package="com.bchenault.association.service";
+option java_package="com.bchenault.association.protobuf";
 package associations;
 
+import "google/protobuf/wrappers.proto";
 
 service AssociationService {
-    rpc SetAssociation (SetAssociationRequest) returns (SetAssociationResponse) { }
+    rpc CreateElement (CreateElementRequest) returns (CreateElementResponse) {}
+    rpc SetAssociation (SetAssociationRequest) returns (SetAssociationResponse) {}
+}
+
+message CreateElementRequest {
+    string name = 1;
+
+    string element_type = 2;
+}
+
+message CreateElementResponse {
+    string id = 1;
 }
 
 message SetAssociationRequest {
-    string input = 1;
+    string parent_id = 1;
+
+    Element child = 2;
 }
 
-message SetAssociationResponse {
-    string output = 1;
+message SetAssociationResponse {}
+
+message Element {
+    google.protobuf.StringValue id = 1;
+    string name = 2;
+    string element_type = 3;
 }

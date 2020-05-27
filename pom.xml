@@ -165,7 +165,7 @@
                 <argument>-javaagent:${org.mortbay.jetty.alpn:jetty-alpn-agent:jar}</argument>
                 <argument>-classpath</argument>
                 <classpath />
-                <argument>com.bchenault.association.service.AssociationServer</argument>
+                <argument>com.bchenault.association.grpc.AssociationServer</argument>
               </arguments>
             </configuration>
           </execution>
@@ -179,7 +179,7 @@
               <arguments>
                 <argument>-classpath</argument>
                 <classpath />
-                <argument>com.bchenault.association.service.AssociationClient</argument>
+                <argument>com.bchenault.association.grpc.AssociationClient</argument>
                 <argument>${GreeterClient.user}</argument>
               </arguments>
             </configuration>
