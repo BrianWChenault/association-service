@@ -3,10 +3,11 @@ package com.bchenault.association.grpc
 import java.util.UUID
 
 import akka.stream.Materializer
-import com.bchenault.association.protobuf.{AssociationService, CreateElementRequest, CreateElementResponse, Element, SetAssociationRequest, SetAssociationResponse}
+import com.bchenault.association.protobuf.{Association, AssociationService, CreateElementRequest, CreateElementResponse, Element, SetAssociationRequest, SetAssociationResponse}
 import com.bchenault.association.services.AssociationPersistence
 import io.grpc.{Status, StatusException}
 import javax.inject.Inject
+import cats.implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,12 +16,17 @@ class AssociationServiceImpl @Inject()(
                                         materializer: Materializer
                                       )(implicit ex: ExecutionContext) extends AssociationService {
   override def setAssociation(request: SetAssociationRequest): Future[SetAssociationResponse] = {
-    request.child.map { child =>
-      associationPersistence.setChildToParentAssociation(request.parentId, child)
-        .map(_ => SetAssociationResponse())
-    }.getOrElse{
-      throw new StatusException(Status.INVALID_ARGUMENT)
-    }
+    val association = request.associationRequest.getOrElse(Association())
+    (for {
+      from <- association.fromElement
+      to <- association.toElement
+    } yield {
+      associationPersistence.setAssociation(from, to, association.associationType)
+          .map(createdAssociation => SetAssociationResponse(createdAssociation))
+    })
+      .getOrElse{
+        throw new StatusException(Status.INVALID_ARGUMENT)
+      }
   }
 
   override def createElement(request: CreateElementRequest): Future[CreateElementResponse] = {

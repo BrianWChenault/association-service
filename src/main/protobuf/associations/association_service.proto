@@ -6,6 +6,9 @@ import "google/protobuf/wrappers.proto";
 
 service AssociationService {
     rpc CreateElement (CreateElementRequest) returns (CreateElementResponse) {}
+    // associates two elements with one another by a provided type
+    // if the elements provided do not have an id, new ones will be created
+    // if ids are provided, the graph is checked for their existence and if they exist an association is created for existing elements
     rpc SetAssociation (SetAssociationRequest) returns (SetAssociationResponse) {}
 }
 
@@ -20,15 +23,21 @@ message CreateElementResponse {
 }
 
 message SetAssociationRequest {
-    string parent_id = 1;
-
-    Element child = 2;
+    Association association_request = 1;
 }
 
-message SetAssociationResponse {}
+message SetAssociationResponse {
+    Association created_association = 1;
+}
 
 message Element {
     google.protobuf.StringValue id = 1;
     string name = 2;
     string element_type = 3;
+}
+
+message Association {
+    Element from_element = 1;
+    Element to_element = 2;
+    string association_type = 3;
 }

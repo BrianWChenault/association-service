@@ -1,12 +1,11 @@
 package com.bchenault.association.services
 
-import com.bchenault.association.protobuf.Element
+import com.bchenault.association.protobuf.{Association, Element}
 
 import scala.concurrent.Future
 
 trait AssociationPersistence {
   def createElement(element: Element): Future[Element]
-  def setChildToParentAssociation(parentId: String, childElement: Element): Future[Boolean]
-  def getChildrenAssociations(id: String, childTypes: Seq[String]): Future[Seq[Element]]
-  def getParentAssociation(id: String): Future[Option[Element]]
+  def getAssociationsByEdgeType(elementId: String, edgeType: String): Future[Seq[Association]]
+  def setAssociation(from: Element, to: Element, edgeType: String): Future[Option[Association]]
 }
