@@ -16,7 +16,7 @@ class AssociationServiceImpl @Inject()(
                                       )(implicit ex: ExecutionContext) extends AssociationService {
   override def setAssociation(request: SetAssociationRequest): Future[SetAssociationResponse] = {
     request.child.map { child =>
-      associationPersistence.setAssociation(request.parentId, child)
+      associationPersistence.setChildToParentAssociation(request.parentId, child)
         .map(_ => SetAssociationResponse())
     }.getOrElse{
       throw new StatusException(Status.INVALID_ARGUMENT)
@@ -24,10 +24,9 @@ class AssociationServiceImpl @Inject()(
   }
 
   override def createElement(request: CreateElementRequest): Future[CreateElementResponse] = {
-    val elementId = UUID.randomUUID().toString
     associationPersistence.createElement(
-      Element(id = elementId, name = request.name, elementType = request.elementType)
+      Element(id = None, name = request.name, elementType = request.elementType)
     )
-      .map(_ => CreateElementResponse(id = elementId))
+      .map(createdElement => CreateElementResponse(id = createdElement.id))
   }
 }

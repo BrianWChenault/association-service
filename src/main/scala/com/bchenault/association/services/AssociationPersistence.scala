@@ -5,8 +5,8 @@ import com.bchenault.association.protobuf.Element
 import scala.concurrent.Future
 
 trait AssociationPersistence {
-  def createElement(element: Element): Future[Unit]
-  def setAssociation(parentId: String, childElement: Element): Future[Unit]
+  def createElement(element: Element): Future[Element]
+  def setChildToParentAssociation(parentId: String, childElement: Element): Future[Boolean]
   def getChildrenAssociations(id: String, childTypes: Seq[String]): Future[Seq[Element]]
-  def getParentAssociations(id: String): Future[Option[Element]]
+  def getParentAssociation(id: String): Future[Option[Element]]
 }

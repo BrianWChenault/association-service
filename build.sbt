@@ -2,7 +2,7 @@ name := "association-service"
 
 version := "1.0"
 
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.0"
 
 lazy val akkaVersion = "2.6.5"
 lazy val akkaGrpcVersion = "0.8.4"
@@ -22,5 +22,6 @@ libraryDependencies ++= Seq(
   "com.steelbridgelabs.oss" % "neo4j-gremlin-bolt" % "0.4.1",
   "org.neo4j"              % "neo4j-tinkerpop-api-impl" % "0.7-3.2.3",
   "com.google.inject" % "guice" % "4.2.3",
-  "com.google.api.grpc" % "grpc-google-common-protos"           % "1.16.0" % "protobuf"
+  "com.google.api.grpc" % "grpc-google-common-protos"           % "1.16.0" % "protobuf",
+  "org.typelevel"       %% "cats-core"                          % "2.0.0"
 )

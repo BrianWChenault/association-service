@@ -1,5 +1,5 @@
 //#full-example
-package com.bchenault.assoiciations
+package com.bchenault.association
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
