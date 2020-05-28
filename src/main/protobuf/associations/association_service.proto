@@ -11,7 +11,10 @@ service AssociationService {
     // if ids are provided, the graph is checked for their existence and if they exist an association is created for existing elements
     rpc SetAssociation (SetAssociationRequest) returns (SetAssociationResponse) {}
 
-    rpc GetElement (GetElementRequest) returns (GetElementResponse) {}
+    rpc GetElements (GetElementsRequest) returns (GetElementsResponse) {}
+
+    // this endpoint is paginated
+    rpc GetAssociations (GetAssociationsRequest) returns (GetAssociationsResponse) {}
 }
 
 message CreateElementRequest {
@@ -32,12 +35,36 @@ message SetAssociationResponse {
     Association created_association = 1;
 }
 
-message GetElementRequest {
+message GetElementsRequest {
     repeated string ids = 1;
 }
 
-message GetElementResponse {
+message GetElementsResponse {
     repeated Element elements = 1;
+}
+
+message PropertySelector {
+    repeated string properties = 1;
+}
+
+message GetAssociationsRequest {
+    oneof from_selector {
+        string id_selector = 1;
+        PropertySelector property_selector = 2;
+    }
+    // passing in no value will return all associations
+    google.protobuf.StringValue association_type = 3;
+
+    int32 first_result = 4;
+    int32 result_count = 5;
+    bool count_only = 6;
+    bool return_all = 7;
+}
+
+message GetAssociationsResponse {
+    repeated Association associations = 1;
+
+    int32 total_size = 2;
 }
 
 message Element {

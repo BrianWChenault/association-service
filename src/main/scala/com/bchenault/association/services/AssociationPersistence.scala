@@ -6,7 +6,8 @@ import scala.concurrent.Future
 
 trait AssociationPersistence {
   def createElement(element: Element): Future[Element]
-  def getAssociationsByEdgeType(elementId: String, edgeType: String): Future[Seq[Association]]
+  def getAssociationsFromId(fromId: String, edgeType: Option[String]): Future[Seq[Association]]
+  def getAssociationsFromProperties(properties: Seq[String], edgeType: Option[String]): Future[Seq[Association]]
   def setAssociation(from: Element, to: Element, edgeType: String): Future[Option[Association]]
   def getElementById(elementId: String): Future[Option[Element]]
 }

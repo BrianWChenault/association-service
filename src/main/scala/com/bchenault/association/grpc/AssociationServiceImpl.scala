@@ -1,10 +1,11 @@
 package com.bchenault.association.grpc
 
 import akka.stream.Materializer
-import com.bchenault.association.protobuf.{Association, AssociationService, CreateElementRequest, CreateElementResponse, Element, GetElementRequest, GetElementResponse, SetAssociationRequest, SetAssociationResponse}
+import com.bchenault.association.protobuf._
 import com.bchenault.association.services.AssociationPersistence
 import io.grpc.{Status, StatusException}
 import javax.inject.Inject
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class AssociationServiceImpl @Inject()(
@@ -32,10 +33,14 @@ class AssociationServiceImpl @Inject()(
       .map(createdElement => CreateElementResponse(id = createdElement.id))
   }
 
-  override def getElement(request: GetElementRequest): Future[GetElementResponse] = {
+  override def getElements(request: GetElementsRequest): Future[GetElementsResponse] = {
     Future.sequence(request.ids.map { elementId =>
       associationPersistence.getElementById(elementId)
     })
-      .map(allElements => GetElementResponse(elements = allElements.flatten))
+      .map(allElements => GetElementsResponse(elements = allElements.flatten))
+  }
+
+  override def getAssociations(request: GetAssociationsRequest): Future[GetAssociationsResponse] = {
+
   }
 }

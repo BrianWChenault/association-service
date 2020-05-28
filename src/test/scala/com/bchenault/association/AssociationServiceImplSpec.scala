@@ -7,17 +7,15 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.bchenault.association.grpc.AssociationServiceImpl
 import com.bchenault.association.models.Neo4JDatabase
-import com.bchenault.association.protobuf.{CreateElementRequest, CreateElementResponse, Element, GetElementRequest}
+import com.bchenault.association.protobuf._
 import com.bchenault.association.services.Neo4JAssociationPersistence
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.Matchers
-import org.scalatest.WordSpecLike
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers, WordSpecLike}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.Span
 
 class AssociationServiceImplSpec
-  extends Matchers
-  with WordSpecLike
+  extends FlatSpec
+  with Matchers
   with BeforeAndAfterAll
   with Eventually
   with ScalaFutures {
@@ -39,8 +37,7 @@ class AssociationServiceImplSpec
     database.fixture.cleanup()
   }
 
-  "AssociationServiceImpl" should {
-    "create and query elements" in {
+  "AssociationServiceImpl" should "create and query elements" in {
       whenReady(service.createElement(CreateElementRequest(name = "test_element_0", elementType = "test"))) { response_0 =>
         val elementId_0 = response_0.id.get
 
@@ -48,7 +45,7 @@ class AssociationServiceImplSpec
           val elementId_1 = response_1.id.get
 
           eventually {
-            whenReady(service.getElement(GetElementRequest(ids = Seq(elementId_0, elementId_1)))) { getResponse =>
+            whenReady(service.getElements(GetElementsRequest(ids = Seq(elementId_0, elementId_1)))) { getResponse =>
               getResponse.elements.size shouldBe 2
               getResponse.elements.find(_.id.get == elementId_0).get.name shouldBe "test_element_0"
               getResponse.elements.find(_.id.get == elementId_1).get.name shouldBe "test_element_1"
@@ -57,5 +54,9 @@ class AssociationServiceImplSpec
         }
       }
     }
-  }
+
+    it should "create and query associations" in {
+
+    }
+
 }
