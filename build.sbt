@@ -23,5 +23,7 @@ libraryDependencies ++= Seq(
   "org.neo4j"              % "neo4j-tinkerpop-api-impl" % "0.7-3.2.3",
   "com.google.inject" % "guice" % "4.2.3",
   "com.google.api.grpc" % "grpc-google-common-protos"           % "1.16.0" % "protobuf",
-  "org.typelevel"       %% "cats-core"                          % "2.0.0"
+  "org.typelevel"       %% "cats-core"                          % "2.0.0",
+  "org.scala-lang.modules" %% "scala-async" % "0.10.0",
+  "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
 )

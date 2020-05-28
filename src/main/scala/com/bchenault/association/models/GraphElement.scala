@@ -4,9 +4,9 @@ import com.bchenault.association.protobuf.Element
 import gremlin.scala.{id, label}
 
 @label("element")
-case class GraphElement(@id id: Option[String], elementType: String, name: String) {
+case class GraphElement(@id uuid: Option[String], elementType: String, name: String) extends DatabaseEntity {
   def toProto(): Element = Element(
-    id = id,
+    id = uuid,
     name = name,
     elementType = elementType
   )
@@ -14,7 +14,7 @@ case class GraphElement(@id id: Option[String], elementType: String, name: Strin
 
 object GraphElement {
   def fromProto(protoElement: Element): GraphElement = GraphElement(
-     id = protoElement.id,
+     uuid = protoElement.id,
     elementType = protoElement.elementType,
     name = protoElement.name
     )

@@ -3,12 +3,14 @@ import com.bchenault.association.models.{GraphEdge, GraphElement, Neo4JDatabase}
 import com.bchenault.association.protobuf.{Association, Element}
 import com.bchenault.association.utilities.FutureHelper
 import gremlin.scala._
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import cats.implicits._
 import org.apache.tinkerpop.gremlin.structure.Direction
 
+import scala.async.Async._
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class Neo4JAssociationPersistence @Inject()(
                                            database: Neo4JDatabase
                                            )(implicit ec: ExecutionContext) extends AssociationPersistence {
@@ -16,11 +18,13 @@ class Neo4JAssociationPersistence @Inject()(
 
   override def createElement(protoElement: Element): Future[Element] = {
     createVertex(GraphElement.fromProto(protoElement))
-      .map(vertex => vertex.toCC[GraphElement].toProto())
+      .map{ vertex =>
+        vertex.toCC[GraphElement].toProto()
+      }
   }
 
-  override def getAssociationsByEdgeType(elementId: String, edgeType: String): Future[Seq[Association]]= {
-    getVertexById(elementId).map {
+  override def getAssociationsByEdgeType(elementId: String, edgeType: String): Future[Seq[Association]]= async {
+    await(getVertexById(elementId)) match {
       case Some(vertex) => {
         vertex.edges(Direction.BOTH, edgeType)
           .asInstanceOf[Seq[Edge]]
@@ -43,6 +47,11 @@ class Neo4JAssociationPersistence @Inject()(
       .flatMap(_.traverse(_.map(edgeToAssociation)))
   }
 
+  override def getElementById(elementId: String): Future[Option[Element]] = async {
+    await(getVertexById(elementId))
+      .map(_.toCC[GraphElement].toProto())
+  }
+
   private def edgeToAssociation(edge: Edge): Association = {
     Association(
       fromElement = edge.outVertex().toCC[GraphElement].toProto().some,
@@ -59,7 +68,9 @@ class Neo4JAssociationPersistence @Inject()(
   }
 
   private def getVertexById(id: String): Future[Option[Vertex]] = {
-    def doGetVertex(id: String): Option[Vertex] = graph.V(id).headOption()
+    def doGetVertex(id: String): Option[Vertex] = {
+      graph.V.hasId(id).headOption()
+    }
     FutureHelper.wrapMethod(doGetVertex, id)
   }
 
@@ -80,15 +91,5 @@ class Neo4JAssociationPersistence @Inject()(
       createdEdge
     }
     FutureHelper.wrapMethod(doSetAssociation, SetRequest(from, to))
-  }
-
-  def getParentAssociation(id: String): Future[Option[Element]] = {
-    getVertexById(id).map {
-        case Some(vertex) => {
-          vertex.asScala().out()
-        }
-        case None => None
-    }
-    ???
   }
 }

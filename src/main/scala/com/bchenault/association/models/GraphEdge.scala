@@ -1,6 +1,7 @@
 package com.bchenault.association.models
 
-import gremlin.scala.id
+import gremlin.scala.{id, label}
 
-case class GraphEdge(@id id: Option[String], edgeType: String)
+@label("association")
+case class GraphEdge(@id uuid: Option[String], edgeType: String) extends DatabaseEntity
 

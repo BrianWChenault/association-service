@@ -10,6 +10,8 @@ service AssociationService {
     // if the elements provided do not have an id, new ones will be created
     // if ids are provided, the graph is checked for their existence and if they exist an association is created for existing elements
     rpc SetAssociation (SetAssociationRequest) returns (SetAssociationResponse) {}
+
+    rpc GetElement (GetElementRequest) returns (GetElementResponse) {}
 }
 
 message CreateElementRequest {
@@ -28,6 +30,14 @@ message SetAssociationRequest {
 
 message SetAssociationResponse {
     Association created_association = 1;
+}
+
+message GetElementRequest {
+    repeated string ids = 1;
+}
+
+message GetElementResponse {
+    repeated Element elements = 1;
 }
 
 message Element {

@@ -2,8 +2,11 @@ package com.bchenault.association.models
 
 import com.steelbridgelabs.oss.neo4j.structure.{Neo4JGraphConfigurationBuilder, Neo4JGraphFactory}
 import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider
+import com.bchenault.neoi4j.structure.providers.Neo4JNativeStringElementIdProvider
 import gremlin.scala._
+import javax.inject.Singleton
 
+@Singleton
 class Neo4JDatabase {
   val fixture = new {
     val configuration = Neo4JGraphConfigurationBuilder.connect(
@@ -12,8 +15,8 @@ class Neo4JDatabase {
       "neo4j",
       "",
       "neo4j"
-    ).withElementIdProvider(classOf[Neo4JNativeElementIdProvider])
-      .withEdgeIdProvider(classOf[Neo4JNativeElementIdProvider])
+    ).withElementIdProvider(classOf[Neo4JNativeStringElementIdProvider])
+      .withEdgeIdProvider(classOf[Neo4JNativeStringElementIdProvider])
       .build()
 
     implicit val graph = Neo4JGraphFactory.open(configuration).asScala()
