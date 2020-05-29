@@ -12,6 +12,8 @@ import com.bchenault.association.services.Neo4JAssociationPersistence
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers, WordSpecLike}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.Span
+import cats.implicits._
+import com.bchenault.association.protobuf.GetAssociationsRequest.FromSelector
 
 class AssociationServiceImplSpec
   extends FlatSpec
@@ -48,7 +50,7 @@ class AssociationServiceImplSpec
             whenReady(service.getElements(GetElementsRequest(ids = Seq(elementId_0, elementId_1)))) { getResponse =>
               getResponse.elements.size shouldBe 2
               getResponse.elements.find(_.id.get == elementId_0).get.name shouldBe "test_element_0"
-              getResponse.elements.find(_.id.get == elementId_1).get.name shouldBe "test_element_1"
+              getResponse.elements.find(_.id.get == elementId_1).get.elementType shouldBe "test"
             }
           }
         }
@@ -56,7 +58,35 @@ class AssociationServiceImplSpec
     }
 
     it should "create and query associations" in {
+      val setRequest = SetAssociationRequest(Association(
+        fromElement = Element(
+          name = "Location_0",
+          elementType = "Location"
+        ).some,
+        toElement = Element(
+          name = "Person_0",
+          elementType = "Person"
+        ).some,
+        associationType = "Resident"
+      ).some)
 
+      whenReady(service.setAssociation(setRequest)) { setResponse =>
+        println(s"Set Response: $setResponse")
+        val getRequest = GetAssociationsRequest(
+          fromSelector = FromSelector.IdSelector(setResponse.createdAssociation.get.fromElement.get.id.get),
+          associationType = "Resident".some,
+          returnAll = true
+        )
+        eventually {
+          whenReady(service.getAssociations(getRequest)) { getResponse =>
+            println(getResponse)
+            getResponse.totalSize shouldBe 1
+            val association = getResponse.associations.head
+            association.fromElement.get.name shouldBe "Location_0"
+            association.toElement.get.name shouldBe "Person_0"
+          }
+        }
+      }
     }
 
 }

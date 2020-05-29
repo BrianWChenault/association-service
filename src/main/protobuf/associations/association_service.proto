@@ -44,7 +44,7 @@ message GetElementsResponse {
 }
 
 message PropertySelector {
-    repeated string properties = 1;
+    map<string, string> properties = 1;
 }
 
 message GetAssociationsRequest {

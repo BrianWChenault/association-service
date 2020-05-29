@@ -1,6 +1,7 @@
 package com.bchenault.association.grpc
 
 import akka.stream.Materializer
+import com.bchenault.association.protobuf.GetAssociationsRequest.FromSelector
 import com.bchenault.association.protobuf._
 import com.bchenault.association.services.AssociationPersistence
 import io.grpc.{Status, StatusException}
@@ -41,6 +42,28 @@ class AssociationServiceImpl @Inject()(
   }
 
   override def getAssociations(request: GetAssociationsRequest): Future[GetAssociationsResponse] = {
+    val associations = request.fromSelector match {
+      case FromSelector.Empty =>
+        Future.successful(Seq.empty[Association])
+      case FromSelector.IdSelector(elementId) =>
+        associationPersistence.getAssociationsFromId(elementId, request.associationType)
+      case FromSelector.PropertySelector(propertySelector) =>
+        associationPersistence.getAssociationsFromProperties(propertySelector.properties, request.associationType)
+    }
 
+    associations
+      .map(handlePagination(_, request.returnAll, request.firstResult, request.resultCount))
+        .map(results => GetAssociationsResponse(
+          associations = results,
+          totalSize = results.size
+        ))
+  }
+
+  private def handlePagination[T](elements: Seq[T], returnAll: Boolean, firstResult: Int, resultCount: Int): Seq[T] = {
+    if (returnAll) {
+      elements
+    } else {
+      elements.slice(firstResult, resultCount)
+    }
   }
 }

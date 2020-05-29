@@ -27,23 +27,26 @@ class Neo4JAssociationPersistence @Inject()(
     val edgeSelector = edgeType.toSeq
     await(getVertexById(fromId)) match {
       case Some(vertex) => {
+        println(s"found vertex \n$vertex")
         vertex.edges(Direction.BOTH, edgeSelector: _*)
-          .asInstanceOf[Seq[Edge]]
+            .forEachRemaining(println)
+
+          Seq.empty
           .map(edgeToAssociation)
       }
-      case None => Seq.empty[Association]
+      case None => {
+        println(s"did not find vertex")
+        Seq.empty[Association]
+      }
     }
   }
 
-  override def getAssociationsFromProperties(properties: Seq[String], edgeType: Option[String]): Future[Seq[Association]] = {
+  override def getAssociationsFromProperties(properties: Map[String, String], edgeType: Option[String]): Future[Seq[Association]] = async {
     val edgeSelector = edgeType.toSeq
-    await(getVertexById(fromId)) match {
-      case Some(vertex) => {
-        vertex.edges(Direction.BOTH, edgeSelector: _*)
-          .asInstanceOf[Seq[Edge]]
-          .map(edgeToAssociation)
-      }
-      case None => Seq.empty[Association]
+    await(getVerticesByProperties(properties)).flatMap{ vertex =>
+      vertex.edges(Direction.BOTH, edgeSelector: _*)
+        .asInstanceOf[Seq[Edge]]
+        .map(edgeToAssociation)
     }
   }
 
@@ -67,11 +70,13 @@ class Neo4JAssociationPersistence @Inject()(
 
   private def edgeToAssociation(edge: Edge): Association = {
     Association(
-      fromElement = edge.outVertex().toCC[GraphElement].toProto().some,
-      toElement = edge.inVertex().toCC[GraphElement].toProto().some,
-      associationType = edge.label()
+      fromElement = vertexToElement(edge.outVertex()).some,
+      toElement = vertexToElement(edge.inVertex()).some,
+      associationType = edge.toCC[GraphEdge].edgeType
     )
   }
+
+  private def vertexToElement(vertex: Vertex): Element =  vertex.toCC[GraphElement].toProto()
 
   private def getOrCreateVertex(protoElement: Element): Future[Option[Vertex]] = {
     protoElement.id match {
@@ -87,10 +92,15 @@ class Neo4JAssociationPersistence @Inject()(
     FutureHelper.wrapMethod(doGetVertex, id)
   }
 
-  private def getVerticesByProperties(properties: Seq[String]): Future[Seq[Vertex]] = {
-    def doGetVertices(properties: Seq[String]): Seq[Vertex] = {
-      graph.V.has
+  private def getVerticesByProperties(properties: Map[String, String]): Future[Seq[Vertex]] = {
+    def doGetVertices(properties: Map[String, String]): Seq[Vertex] = {
+      val allVertices = graph.V
+      properties.foldLeft(allVertices) { (aggregatedQuery, propertySelector) =>
+        val keyValue = KeyValue(Key[String](propertySelector._1), propertySelector._2)
+        aggregatedQuery.has(keyValue)
+      }.toList
     }
+    FutureHelper.wrapMethod(doGetVertices, properties)
   }
 
   private def createVertex(graphElement: GraphElement): Future[Vertex] = {
@@ -103,12 +113,12 @@ class Neo4JAssociationPersistence @Inject()(
   }
 
   private def createAssociation(from: Vertex, to: Vertex, edge: GraphEdge): Future[Edge] = {
-    case class SetRequest(from: Vertex, to: Vertex)
+    case class SetRequest(from: Vertex, to: Vertex, edge: GraphEdge)
     def doSetAssociation(request: SetRequest): Edge = {
-      val createdEdge = request.from --- GraphEdge(None, "") --> request.to
+      val createdEdge = from.addEdge(to, edge)
       graph.tx().commit()
       createdEdge
     }
-    FutureHelper.wrapMethod(doSetAssociation, SetRequest(from, to))
+    FutureHelper.wrapMethod(doSetAssociation, SetRequest(from, to, edge))
   }
 }
