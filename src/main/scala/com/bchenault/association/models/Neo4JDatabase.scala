@@ -1,30 +1,16 @@
 package com.bchenault.association.models
 
-import com.steelbridgelabs.oss.neo4j.structure.{Neo4JGraphConfigurationBuilder, Neo4JGraphFactory}
-import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider
-import com.bchenault.neoi4j.structure.providers.Neo4JNativeStringElementIdProvider
-import gremlin.scala._
-import javax.inject.Singleton
+import neotypes.GraphDatabase
+import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class Neo4JDatabase {
-  val fixture = new {
-    val configuration = Neo4JGraphConfigurationBuilder.connect(
-      "localhost",
-      7687.asInstanceOf[Short],
-      "neo4j",
-      "",
-      "neo4j"
-    ).withElementIdProvider(classOf[Neo4JNativeStringElementIdProvider])
-      .withEdgeIdProvider(classOf[Neo4JNativeStringElementIdProvider])
-      .build()
+class Neo4JDatabase @Inject()(implicit ec: ExecutionContext){
+  val driver = GraphDatabase.driver[Future].apply("bolt://localhost:7687")
+  val session = driver.session
 
-    implicit val graph = Neo4JGraphFactory.open(configuration).asScala()
-
-    def cleanup(): Unit = {
-      graph.V.drop().iterate()
-      graph.tx().commit()
+    def dropAll(): Future[Unit] = {
+      ???
     }
-  }
-
 }

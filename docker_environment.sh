@@ -12,5 +12,5 @@ docker run --name neo4j \
     --volume=$HOME/neo4j/data:/data \
     --volume=$HOME/neo4j/logs:/logs \
     --env NEO4J_AUTH=none \
-    -d neo4j:4.0.2
+    -d neo4j:3.5.0
 

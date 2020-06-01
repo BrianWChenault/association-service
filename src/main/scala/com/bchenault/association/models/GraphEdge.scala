@@ -1,7 +1,10 @@
 package com.bchenault.association.models
 
-import gremlin.scala.{id, label}
+import com.bchenault.association.protobuf.Association
 
-@label("association")
-case class GraphEdge(@id uuid: Option[String], edgeType: String) extends DatabaseEntity
+case class GraphEdge(from: GraphElement, to: GraphElement, edgeType: String) {
+  def toAssociation = Association(
+
+  )
+}
 

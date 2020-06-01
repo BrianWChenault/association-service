@@ -1,10 +1,8 @@
 package com.bchenault.association.models
 
 import com.bchenault.association.protobuf.Element
-import gremlin.scala.{id, label}
 
-@label("element")
-case class GraphElement(@id uuid: Option[String], elementType: String, name: String) extends DatabaseEntity {
+case class GraphElement(uuid: Option[String], elementType: String, name: String) {
   def toProto(): Element = Element(
     id = uuid,
     name = name,

@@ -35,14 +35,16 @@ class AssociationServiceImplSpec
     Await.ready(system.terminate(), 5.seconds)
   }
 
-  override def beforeAll: Unit = {
-    database.fixture.cleanup()
-  }
+//  override def beforeAll: Unit = {
+//    database.fixture.cleanup()
+//  }
 
   "AssociationServiceImpl" should "create and query elements" in {
+    println(s"Starting test")
       whenReady(service.createElement(CreateElementRequest(name = "test_element_0", elementType = "test"))) { response_0 =>
         val elementId_0 = response_0.id.get
 
+        println(s"reading test: $response_0")
         whenReady(service.createElement(CreateElementRequest(name = "test_element_1", elementType = "test"))) { response_1 =>
           val elementId_1 = response_1.id.get
 
