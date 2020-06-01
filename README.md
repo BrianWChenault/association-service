@@ -1,4 +1,4 @@
-# Anomaly Detection
+# Association Service
 ## General Description 
 This service is responsible to creating and providing relationships between "elements".  The exact nature of what each element
 represents is intentionally left generic in order to allow this service to back data organization for potentially many clients.
