@@ -2,9 +2,9 @@ package com.bchenault.association.models
 
 import com.bchenault.association.protobuf.Element
 
-case class GraphElement(uuid: Option[String], elementType: String, name: String) {
+case class GraphElement(elementId: Option[String], elementType: String, name: String) {
   def toProto(): Element = Element(
-    id = uuid,
+    id = elementId,
     name = name,
     elementType = elementType
   )
@@ -12,7 +12,7 @@ case class GraphElement(uuid: Option[String], elementType: String, name: String)
 
 object GraphElement {
   def fromProto(protoElement: Element): GraphElement = GraphElement(
-     uuid = protoElement.id,
+     elementId = protoElement.id,
     elementType = protoElement.elementType,
     name = protoElement.name
     )

@@ -1,5 +1,7 @@
 package com.bchenault.association
 
+import java.util.UUID
+
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -35,23 +37,19 @@ class AssociationServiceImplSpec
     Await.ready(system.terminate(), 5.seconds)
   }
 
-//  override def beforeAll: Unit = {
-//    database.fixture.cleanup()
-//  }
-
   "AssociationServiceImpl" should "create and query elements" in {
-    println(s"Starting test")
-      whenReady(service.createElement(CreateElementRequest(name = "test_element_0", elementType = "test"))) { response_0 =>
+    val testName_0 = s"test_element_${UUID.randomUUID()}"
+    val testName_1 = s"test_element_${UUID.randomUUID()}"
+      whenReady(service.createElement(CreateElementRequest(name = testName_0, elementType = "test"))) { response_0 =>
         val elementId_0 = response_0.id.get
 
-        println(s"reading test: $response_0")
-        whenReady(service.createElement(CreateElementRequest(name = "test_element_1", elementType = "test"))) { response_1 =>
+        whenReady(service.createElement(CreateElementRequest(name = testName_1, elementType = "test"))) { response_1 =>
           val elementId_1 = response_1.id.get
 
           eventually {
             whenReady(service.getElements(GetElementsRequest(ids = Seq(elementId_0, elementId_1)))) { getResponse =>
               getResponse.elements.size shouldBe 2
-              getResponse.elements.find(_.id.get == elementId_0).get.name shouldBe "test_element_0"
+              getResponse.elements.find(_.id.get == elementId_0).get.name shouldBe testName_0
               getResponse.elements.find(_.id.get == elementId_1).get.elementType shouldBe "test"
             }
           }
@@ -60,13 +58,15 @@ class AssociationServiceImplSpec
     }
 
     it should "create and query associations" in {
+      val locationName = s"Location_${UUID.randomUUID()}"
+      val personName = s"Person_${UUID.randomUUID()}"
       val setRequest = SetAssociationRequest(Association(
         fromElement = Element(
-          name = "Location_0",
+          name = locationName,
           elementType = "Location"
         ).some,
         toElement = Element(
-          name = "Person_0",
+          name = personName,
           elementType = "Person"
         ).some,
         associationType = "Resident"
@@ -84,8 +84,8 @@ class AssociationServiceImplSpec
             println(getResponse)
             getResponse.totalSize shouldBe 1
             val association = getResponse.associations.head
-            association.fromElement.get.name shouldBe "Location_0"
-            association.toElement.get.name shouldBe "Person_0"
+            association.fromElement.get.name shouldBe locationName
+            association.toElement.get.name shouldBe personName
           }
         }
       }
