@@ -5,7 +5,7 @@ represents is intentionally left generic in order to allow this service to back 
 The current api is contained in the [protobuf file](src/main/protobuf/associations/association_service.proto)
 ### API
 - Create Element: make a new element (TODO: perhaps extend request with map<string, string> for fully generic properties)
-- Get Elements: Query based off id of list of properties and receive 0-n elements(TODO: add pagination)
+- Get Elements: Query based off id or list of properties and receive 0-n elements(TODO: add pagination)
 - Set Association: Associate two elements with one another and label association.  This will create elements as well if the 
 requested elements do not exist
 - Get Associations: Query associations by selecting a root element and what associations you want to see, returns a paginated 
