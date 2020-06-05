@@ -10,7 +10,8 @@ class Neo4JDatabase @Inject()(implicit ec: ExecutionContext){
   val driver = GraphDatabase.driver[Future].apply("bolt://localhost:7687")
   val session = driver.session
 
-    def dropAll(): Future[Unit] = {
-      ???
+    def close(): Future[Unit] = {
+      session.close
+      driver.close
     }
 }

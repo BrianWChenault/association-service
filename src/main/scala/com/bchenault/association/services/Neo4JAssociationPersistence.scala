@@ -2,9 +2,10 @@ package com.bchenault.association.services
 import java.util.UUID
 
 import cats.implicits._
-import com.bchenault.association.models.{GraphElement, Neo4JDatabase}
+import com.bchenault.association.models.{GraphElement, GraphElementResultMapper, Neo4JDatabase}
 import com.bchenault.association.protobuf.{Association, Element}
 import javax.inject.{Inject, Singleton}
+import neotypes.Async
 import neotypes.implicits.all._
 import org.neo4j.driver.v1.summary.ResultSummary
 
@@ -16,6 +17,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class Neo4JAssociationPersistence @Inject()(
                                              database: Neo4JDatabase
                                            )(implicit ec: ExecutionContext) extends AssociationPersistence {
+  implicit val customGraphElementMapper = GraphElementResultMapper.getMapper
+
   override def createElement(element: Element): Future[Element] = {
     (for {
       existingElement <- getElementsByPropertiesAction(getPropertyMap(element)).map(_.headOption)
@@ -50,6 +53,9 @@ class Neo4JAssociationPersistence @Inject()(
   override def getElementById(elementId: String): Future[Option[Element]] = {
     getElementByIdAction(elementId)
   }
+
+  override def getElementsFromProperties(properties: Map[String, String]): Future[Seq[Element]] =
+    getElementsByPropertiesAction(properties)
 
   private def getOrCreateElement(protoElement: Element): Future[Option[Element]] = {
     protoElement.id match {
@@ -94,8 +100,17 @@ class Neo4JAssociationPersistence @Inject()(
 
   private def createElementAction(element: Element): Future[Element] = {
     val uuid = element.id.getOrElse(generateId())
-    c"MERGE (e: element { elementId: $uuid, name: ${element.name}, elementType: ${element.elementType}}) RETURN e"
-      .query[GraphElement]
+    val properties = constructPropertySelector(element.properties)
+    val propertyQueryString = if (!properties.isEmpty) {
+      ", " + properties
+    } else {
+      properties
+    }
+    val createQuery =
+      s"MERGE (e: element { elementId: '$uuid', name: '${element.name}', elementType: '${element.elementType}'$propertyQueryString })" +
+        s" RETURN e"
+
+    createQuery.query[GraphElement]
       .single(database.session)
       .map(_.toProto())
   }
@@ -104,7 +119,9 @@ class Neo4JAssociationPersistence @Inject()(
 
   private def getElementsByPropertiesAction(properties: Map[String, String]): Future[Seq[Element]] = database.driver.readSession { session =>
     val propertySelector = constructPropertySelector(properties)
-    s"MATCH (e: element { $propertySelector }) RETURN e"
+    println("GET ELEMENTS BY PROPERTY")
+    val getQuery = s"MATCH (e: element { $propertySelector }) RETURN e"
+      getQuery
       .query[GraphElement]
       .list(session)
       .map(_.map(_.toProto()))
@@ -117,5 +134,4 @@ class Neo4JAssociationPersistence @Inject()(
     properties.foldLeft(Seq.empty[String]) { (agg, next) =>
       agg :+ s"${next._1}: '${next._2}'"
     }.mkString(", ")
-
 }

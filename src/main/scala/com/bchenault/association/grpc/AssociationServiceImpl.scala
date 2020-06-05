@@ -2,6 +2,7 @@ package com.bchenault.association.grpc
 
 import akka.stream.Materializer
 import com.bchenault.association.protobuf.GetAssociationsRequest.FromSelector
+import com.bchenault.association.protobuf.GetElementsRequest.ElementSelector
 import com.bchenault.association.protobuf._
 import com.bchenault.association.services.AssociationPersistence
 import io.grpc.{Status, StatusException}
@@ -29,16 +30,19 @@ class AssociationServiceImpl @Inject()(
 
   override def createElement(request: CreateElementRequest): Future[CreateElementResponse] = {
     associationPersistence.createElement(
-      Element(id = None, name = request.name, elementType = request.elementType)
+      Element(id = None, name = request.name, elementType = request.elementType, properties = request.properties)
     )
       .map(createdElement => CreateElementResponse(id = createdElement.id))
   }
 
   override def getElements(request: GetElementsRequest): Future[GetElementsResponse] = {
-    Future.sequence(request.ids.map { elementId =>
-      associationPersistence.getElementById(elementId)
-    })
-      .map(allElements => GetElementsResponse(elements = allElements.flatten))
+    val allElements = request.elementSelector match {
+      case ElementSelector.Empty => Future.successful(Seq.empty[Element])
+      case ElementSelector.IdSelector(id) => associationPersistence.getElementById(id).map(_.toSeq)
+      case ElementSelector.PropertySelector(propertySelector) =>
+        associationPersistence.getElementsFromProperties(propertySelector.properties)
+    }
+    allElements.map(GetElementsResponse(_))
   }
 
   override def getAssociations(request: GetAssociationsRequest): Future[GetAssociationsResponse] = {
