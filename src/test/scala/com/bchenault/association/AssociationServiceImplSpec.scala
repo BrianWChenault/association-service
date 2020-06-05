@@ -28,12 +28,11 @@ class AssociationServiceImplSpec
 
   implicit val patience = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
-  val system = ActorSystem("association-service")
-  implicit val mat = ActorMaterializer.create(system)
+  implicit val system = ActorSystem("association-service")
   implicit val ec = ExecutionContext.global
   val database = new Neo4JDatabase()
   val persistence = new Neo4JAssociationPersistence(database)
-  val service = new AssociationServiceImpl(persistence, mat)
+  val service = new AssociationServiceImpl(persistence)
 
   override def afterAll: Unit = {
     Await.ready(database.close(), 5.seconds)

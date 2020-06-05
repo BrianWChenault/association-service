@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.docker.DockerChmodType
+
 name := "association-service"
 
 version := "1.0"
@@ -8,10 +10,14 @@ lazy val akkaVersion = "2.6.5"
 lazy val akkaGrpcVersion = "0.8.4"
 
 enablePlugins(AkkaGrpcPlugin)
+enablePlugins(JavaAppPackaging)
 
 // ALPN agent
 enablePlugins(JavaAgent)
 javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10" % "runtime;test"
+bashScriptExtraDefines ++= Seq( "addJava '-Dpidfile.path=/dev/null'" )
+dockerAdditionalPermissions += (DockerChmodType.UserGroupWriteExecute, "/opt/docker")
+dockerExposedPorts ++= Seq(9000, 9001)
 
 libraryDependencies ++= Seq(
   "org.neo4j.driver" % "neo4j-java-driver" % "1.7.5",

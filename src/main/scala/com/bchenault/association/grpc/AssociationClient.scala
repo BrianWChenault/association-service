@@ -9,9 +9,8 @@ import scala.util.{Failure, Success}
 
 object AssociationClient {
 
-  def main(args: Array[String]): Unit = {
+  def runClient(args: Array[String]): Unit = {
     implicit val sys = ActorSystem("association-service")
-    implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
     val client = AssociationServiceClient(GrpcClientSettings.fromConfig("associations.AssociationService"))

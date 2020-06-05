@@ -11,9 +11,8 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AssociationServiceImpl @Inject()(
-                                      associationPersistence: AssociationPersistence,
-                                        materializer: Materializer
-                                      )(implicit ex: ExecutionContext) extends AssociationService {
+                                      associationPersistence: AssociationPersistence
+                                      )(implicit ex: ExecutionContext, materializer: Materializer) extends AssociationService {
   override def setAssociation(request: SetAssociationRequest): Future[SetAssociationResponse] = {
     val association = request.associationRequest.getOrElse(Association())
     (for {
