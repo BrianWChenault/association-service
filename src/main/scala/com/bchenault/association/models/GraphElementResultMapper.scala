@@ -17,16 +17,17 @@ object GraphElementResultMapper {
         var additionalProperties = Map[String, String]()
         elementProperties.forEach { entry =>
           entry.getKey match {
-            case "elementId" => elementId = entry.getValue.some
-            case "elementType" => elementType = entry.getValue
-            case "name" => name = entry.getValue
-            case _ => additionalProperties = additionalProperties.updated(entry.getKey, entry.getValue)
+            case "elementId" => elementId = entry.getValue.replace("\"", "").some
+            case "elementType" => elementType = entry.getValue.replace("\"", "")
+            case "name" => name = entry.getValue.replace("\"", "")
+            case _ => additionalProperties = additionalProperties.updated(
+              entry.getKey.replace("\"", ""), entry.getValue.replace("\"", "")
+            )
           }
         }
 
         GraphElement(elementId, elementType, name, additionalProperties)
       }
-      println(mappedElements)
 
       mappedElements.headOption match {
         case Some(value) => Right(value)

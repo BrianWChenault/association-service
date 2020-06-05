@@ -11,7 +11,7 @@ import com.bchenault.association.grpc.AssociationServiceImpl
 import com.bchenault.association.models.Neo4JDatabase
 import com.bchenault.association.protobuf._
 import com.bchenault.association.services.Neo4JAssociationPersistence
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, Matchers, WordSpecLike}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.Span
 import cats.implicits._
@@ -22,6 +22,7 @@ class AssociationServiceImplSpec
   extends FlatSpec
   with Matchers
   with BeforeAndAfterAll
+  with BeforeAndAfterEach
   with Eventually
   with ScalaFutures {
 
@@ -37,6 +38,10 @@ class AssociationServiceImplSpec
   override def afterAll: Unit = {
     Await.ready(database.close(), 5.seconds)
     Await.ready(system.terminate(), 5.seconds)
+  }
+
+  override def beforeEach(): Unit = {
+    Await.ready(database.dropAll(), 5.seconds)
   }
 
   "AssociationServiceImpl" should "create and query elements" in {
@@ -105,25 +110,25 @@ class AssociationServiceImplSpec
       properties = Map[String, String]("age" -> "32", "sign" -> "gemini", "hair" -> "brown", "gender" -> "male")
     )
 
-    val createAction = Future.sequence(LazyList(createElementRequest_0, createElementRequest_1).map(service.createElement))
+    whenReady(service.createElement(createElementRequest_0)) { _ =>
+      whenReady(service.createElement(createElementRequest_1)) { _ =>
+        val getRequest_0 = GetElementsRequest(
+          elementSelector = ElementSelector.PropertySelector(PropertySelector(Map[String, String]("gender" -> "male")))
+        )
+        val getRequest_1 = GetElementsRequest(
+          elementSelector = ElementSelector.PropertySelector(PropertySelector(Map[String, String]("sign" -> "aries")))
+        )
 
-    whenReady(createAction) { _ =>
-      val getRequest_0 = GetElementsRequest(
-        elementSelector = ElementSelector.PropertySelector(PropertySelector(Map[String, String]("gender" -> "male")))
-      )
-      val getRequest_1 = GetElementsRequest(
-        elementSelector = ElementSelector.PropertySelector(PropertySelector(Map[String, String]("sign" -> "aries")))
-      )
+        eventually {
+          whenReady(service.getElements(getRequest_0)) { response =>
+            response.elements.size shouldBe 2
+            response.elements.map(_.name) should contain theSameElementsAs Seq(elementName_0, elementName_1)
+          }
 
-      eventually {
-        whenReady(service.getElements(getRequest_0)) { response =>
-          response.elements.size shouldBe 2
-          response.elements.map(_.name) should contain theSameElementsAs Seq(elementName_0, elementName_1)
-        }
-
-        whenReady(service.getElements(getRequest_1)) { response =>
-          response.elements.size shouldBe 1
-          response.elements.map(_.name) should contain theSameElementsAs Seq(elementName_0)
+          whenReady(service.getElements(getRequest_1)) { response =>
+            response.elements.size shouldBe 1
+            response.elements.map(_.name) should contain theSameElementsAs Seq(elementName_0)
+          }
         }
       }
     }

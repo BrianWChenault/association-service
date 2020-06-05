@@ -54,8 +54,9 @@ class Neo4JAssociationPersistence @Inject()(
     getElementByIdAction(elementId)
   }
 
-  override def getElementsFromProperties(properties: Map[String, String]): Future[Seq[Element]] =
+  override def getElementsFromProperties(properties: Map[String, String]): Future[Seq[Element]] = {
     getElementsByPropertiesAction(properties)
+  }
 
   private def getOrCreateElement(protoElement: Element): Future[Option[Element]] = {
     protoElement.id match {
@@ -93,9 +94,9 @@ class Neo4JAssociationPersistence @Inject()(
 
   private def getElementByIdAction(id: String): Future[Option[Element]] = database.driver.readSession { session =>
     c"MATCH (e: element { elementId: $id }) RETURN e"
-      .query[Option[GraphElement]]
-      .single(session)
-      .map(_.map(_.toProto()))
+      .query[GraphElement]
+      .list(session)
+      .map(_.headOption.map(_.toProto()))
   }
 
   private def createElementAction(element: Element): Future[Element] = {
@@ -119,9 +120,8 @@ class Neo4JAssociationPersistence @Inject()(
 
   private def getElementsByPropertiesAction(properties: Map[String, String]): Future[Seq[Element]] = database.driver.readSession { session =>
     val propertySelector = constructPropertySelector(properties)
-    println("GET ELEMENTS BY PROPERTY")
     val getQuery = s"MATCH (e: element { $propertySelector }) RETURN e"
-      getQuery
+    getQuery
       .query[GraphElement]
       .list(session)
       .map(_.map(_.toProto()))
