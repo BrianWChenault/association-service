@@ -9,7 +9,6 @@ import com.typesafe.config.ConfigFactory
 class Module() extends AbstractModule {
 
   override def configure(): Unit = {
-    bind(classOf[AssociationServer]).asEagerSingleton()
     bind(classOf[AssociationPersistence]).to(classOf[Neo4JAssociationPersistence])
   }
 }

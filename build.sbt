@@ -14,7 +14,7 @@ enablePlugins(JavaAgent)
 javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10" % "runtime;test"
 
 libraryDependencies ++= Seq(
-  "org.neo4j.driver" % "neo4j-java-driver" % "1.7.5" % Provided,
+  "org.neo4j.driver" % "neo4j-java-driver" % "1.7.5",
   "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
   "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "test",
   "org.scalatest" %% "scalatest" % "3.0.8" % "test",
