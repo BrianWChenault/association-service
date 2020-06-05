@@ -2,7 +2,7 @@ package com.bchenault.association
 
 import java.util.UUID
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import akka.actor.ActorSystem
@@ -11,16 +11,18 @@ import com.bchenault.association.grpc.AssociationServiceImpl
 import com.bchenault.association.models.Neo4JDatabase
 import com.bchenault.association.protobuf._
 import com.bchenault.association.services.Neo4JAssociationPersistence
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, Matchers, WordSpecLike}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.Span
 import cats.implicits._
 import com.bchenault.association.protobuf.GetAssociationsRequest.FromSelector
+import com.bchenault.association.protobuf.GetElementsRequest.ElementSelector
 
 class AssociationServiceImplSpec
   extends FlatSpec
   with Matchers
   with BeforeAndAfterAll
+  with BeforeAndAfterEach
   with Eventually
   with ScalaFutures {
 
@@ -34,7 +36,12 @@ class AssociationServiceImplSpec
   val service = new AssociationServiceImpl(persistence, mat)
 
   override def afterAll: Unit = {
+    Await.ready(database.close(), 5.seconds)
     Await.ready(system.terminate(), 5.seconds)
+  }
+
+  override def beforeEach(): Unit = {
+    Await.ready(database.dropAll(), 5.seconds)
   }
 
   "AssociationServiceImpl" should "create and query elements" in {
@@ -43,14 +50,14 @@ class AssociationServiceImplSpec
       whenReady(service.createElement(CreateElementRequest(name = testName_0, elementType = "test"))) { response_0 =>
         val elementId_0 = response_0.id.get
 
-        whenReady(service.createElement(CreateElementRequest(name = testName_1, elementType = "test"))) { response_1 =>
-          val elementId_1 = response_1.id.get
-
+        whenReady(service.createElement(CreateElementRequest(name = testName_1, elementType = "test"))) { _ =>
           eventually {
-            whenReady(service.getElements(GetElementsRequest(ids = Seq(elementId_0, elementId_1)))) { getResponse =>
-              getResponse.elements.size shouldBe 2
+            val getRequest = GetElementsRequest(
+              elementSelector = ElementSelector.IdSelector(elementId_0)
+            )
+            whenReady(service.getElements(getRequest)) { getResponse =>
+              getResponse.elements.size shouldBe 1
               getResponse.elements.find(_.id.get == elementId_0).get.name shouldBe testName_0
-              getResponse.elements.find(_.id.get == elementId_1).get.elementType shouldBe "test"
             }
           }
         }
@@ -73,7 +80,6 @@ class AssociationServiceImplSpec
       ).some)
 
       whenReady(service.setAssociation(setRequest)) { setResponse =>
-        println(s"Set Response: $setResponse")
         val getRequest = GetAssociationsRequest(
           fromSelector = FromSelector.IdSelector(setResponse.createdAssociation.get.fromElement.get.id.get),
           associationType = "Resident".some,
@@ -81,7 +87,6 @@ class AssociationServiceImplSpec
         )
         eventually {
           whenReady(service.getAssociations(getRequest)) { getResponse =>
-            println(getResponse)
             getResponse.totalSize shouldBe 1
             val association = getResponse.associations.head
             association.fromElement.get.name shouldBe locationName
@@ -90,5 +95,43 @@ class AssociationServiceImplSpec
         }
       }
     }
+
+  it should "support generic properties on elements" in {
+    val elementName_0 = s"Element_${UUID.randomUUID()}"
+    val elementName_1 = s"Element_${UUID.randomUUID()}"
+    val createElementRequest_0 = CreateElementRequest(
+      name = elementName_0,
+      elementType = "person",
+      properties = Map[String, String]("age" -> "28", "sign" -> "aries", "hair" -> "blond", "gender" -> "male")
+    )
+    val createElementRequest_1 = CreateElementRequest(
+      name = elementName_1,
+      elementType = "person",
+      properties = Map[String, String]("age" -> "32", "sign" -> "gemini", "hair" -> "brown", "gender" -> "male")
+    )
+
+    whenReady(service.createElement(createElementRequest_0)) { _ =>
+      whenReady(service.createElement(createElementRequest_1)) { _ =>
+        val getRequest_0 = GetElementsRequest(
+          elementSelector = ElementSelector.PropertySelector(PropertySelector(Map[String, String]("gender" -> "male")))
+        )
+        val getRequest_1 = GetElementsRequest(
+          elementSelector = ElementSelector.PropertySelector(PropertySelector(Map[String, String]("sign" -> "aries")))
+        )
+
+        eventually {
+          whenReady(service.getElements(getRequest_0)) { response =>
+            response.elements.size shouldBe 2
+            response.elements.map(_.name) should contain theSameElementsAs Seq(elementName_0, elementName_1)
+          }
+
+          whenReady(service.getElements(getRequest_1)) { response =>
+            response.elements.size shouldBe 1
+            response.elements.map(_.name) should contain theSameElementsAs Seq(elementName_0)
+          }
+        }
+      }
+    }
+  }
 
 }

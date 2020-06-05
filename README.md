@@ -4,7 +4,7 @@ This service is responsible to creating and providing relationships between "ele
 represents is intentionally left generic in order to allow this service to back data organization for potentially many clients.
 The current api is contained in the [protobuf file](src/main/protobuf/associations/association_service.proto)
 ### API
-- Create Element: make a new element (TODO: perhaps extend request with map<string, string> for fully generic properties)
+- Create Element: make a new element
 - Get Elements: Query based off id or list of properties and receive 0-n elements(TODO: add pagination)
 - Set Association: Associate two elements with one another and label association.  This will create elements as well if the 
 requested elements do not exist

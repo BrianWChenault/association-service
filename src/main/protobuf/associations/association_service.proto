@@ -21,6 +21,8 @@ message CreateElementRequest {
     string name = 1;
 
     string element_type = 2;
+
+    map<string, string> properties = 3;
 }
 
 message CreateElementResponse {
@@ -36,7 +38,10 @@ message SetAssociationResponse {
 }
 
 message GetElementsRequest {
-    repeated string ids = 1;
+    oneof element_selector {
+        string id_selector = 1;
+        PropertySelector property_selector = 2;
+    }
 }
 
 message GetElementsResponse {
@@ -71,6 +76,8 @@ message Element {
     google.protobuf.StringValue id = 1;
     string name = 2;
     string element_type = 3;
+
+    map<string, string> properties = 4;
 }
 
 message Association {

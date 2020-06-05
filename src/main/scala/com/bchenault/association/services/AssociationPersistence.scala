@@ -10,4 +10,5 @@ trait AssociationPersistence {
   def getAssociationsFromProperties(properties: Map[String, String], edgeType: Option[String]): Future[Seq[Association]]
   def setAssociation(from: Element, to: Element, edgeType: String): Future[Option[Association]]
   def getElementById(elementId: String): Future[Option[Element]]
+  def getElementsFromProperties(properties: Map[String, String]): Future[Seq[Element]]
 }
