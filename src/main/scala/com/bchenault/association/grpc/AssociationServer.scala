@@ -6,29 +6,32 @@ import akka.http.scaladsl.{Http, HttpConnectionContext}
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.{ActorMaterializer, Materializer}
 import com.bchenault.association.protobuf.AssociationServiceHandler
-import com.google.inject.Inject
+import com.google.inject.{Guice, Inject}
 import com.typesafe.config.ConfigFactory
+import com.bchenault.association.Module
+import com.bchenault.association.models.Neo4JDatabase
+import com.bchenault.association.services.Neo4JAssociationPersistence
 
 import scala.concurrent.{ExecutionContext, Future}
 
-//object AssociationServer {
-//
-//  def main(args: Array[String]): Unit = {
-//    val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
-//      .withFallback(ConfigFactory.defaultApplication())
-//    val system: ActorSystem = ActorSystem("association-service", conf)
-//    new AssociationServer(system).run()
-//  }
-//}
+object AssociationServer {
+  def runServer(args: Array[String]): Unit = {
+    val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+      .withFallback(ConfigFactory.defaultApplication())
+    implicit val system: ActorSystem = ActorSystem("association-service", conf)
+    new AssociationServer(system).run()
+  }
+}
 
-class AssociationServer @Inject() (serviceImpl: AssociationServiceImpl) {
-  val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
-    .withFallback(ConfigFactory.defaultApplication())
-  implicit val system: ActorSystem = ActorSystem("association-service", conf)
+class AssociationServer @Inject() (system: ActorSystem) {
 
   def run(): Future[Http.ServerBinding] = {
-    implicit val mat: Materializer = ActorMaterializer()
+    implicit val sys = system
     implicit val ec: ExecutionContext = system.dispatcher
+
+    val database = new Neo4JDatabase()
+    val persistence = new Neo4JAssociationPersistence(database)
+    val serviceImpl = new AssociationServiceImpl(persistence)
 
     val service: HttpRequest => Future[HttpResponse] =
       AssociationServiceHandler(serviceImpl)
@@ -36,7 +39,7 @@ class AssociationServer @Inject() (serviceImpl: AssociationServiceImpl) {
     val bound = Http().bindAndHandleAsync(
       service,
       interface = "127.0.0.1",
-      port = 8080,
+      port = 9001,
       connectionContext = HttpConnectionContext(http2 = Always)
     )
 
@@ -46,6 +49,4 @@ class AssociationServer @Inject() (serviceImpl: AssociationServiceImpl) {
 
     bound
   }
-
-  run()
 }
